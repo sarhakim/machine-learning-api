@@ -17,5 +17,6 @@ class Columns:
     label = 'LABEL'
     categorical = ['CAT1', 'CAT2']
 
+
 class Params:
     precision_threshold = 0.1

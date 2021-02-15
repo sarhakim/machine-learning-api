@@ -1,6 +1,6 @@
+import logging
 import os
 import time
-import logging
 
 import joblib
 import pandas as pd
@@ -12,6 +12,7 @@ from ml_api.config import Columns, Paths, Params
 
 class Model:
     """Class to build the model from a provided dataset."""
+
     def __init__(self, dataset):
         self.dataset = dataset
         self.model = None

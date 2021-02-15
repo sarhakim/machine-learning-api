@@ -1,3 +1,5 @@
+import json
+
 import pandas as pd
 from sqlalchemy import Integer, String
 from sqlalchemy import Table, Column, Float, MetaData
@@ -22,7 +24,7 @@ def insert_data_in_db(engine, json_values):
                   Column('DIS2', Float),
                   Column('LABEL', Integer),
                   Column('set', String)
-    )
+                  )
 
     with engine.connect() as conn:
         for json_value in json_values:
@@ -59,7 +61,7 @@ def create_table(engine):
                   Column('DIS2', Float),
                   Column('LABEL', Integer),
                   Column('set', String)
-    )
+                  )
     with engine.connect():
         table.create()
 
@@ -76,7 +78,14 @@ def get_data():
 def delete_data():
     engine = create_engine(Paths.database_uri)
     with engine.connect() as conn:
-        result_set = conn.execute(f"DELETE FROM {Paths.table}")
+        conn.execute(f"DELETE FROM {Paths.table}")
+
+
+def push_data_from_csv():
+    df = pd.read_csv(Paths.data, sep=';', index_col=0)
+    json_values = json.loads(df.to_json(orient='records'))
+    engine = create_engine(Paths.database_uri)
+    insert_data_in_db(engine=engine, json_values=json_values)
 
 
 if __name__ == '__main__':
