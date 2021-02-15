@@ -1,4 +1,5 @@
 import argparse
+import logging
 import traceback
 
 import joblib
@@ -6,8 +7,8 @@ import pandas as pd
 from flask import Flask, jsonify, request
 from sqlalchemy import create_engine
 
-from ml_api.config import Paths
-from ml_api.database import insert_data, get_train_data
+from ml_api.config import Paths, Columns
+from ml_api.database import insert_data_in_db, get_data
 from ml_api.model import Model
 
 app = Flask(__name__)
@@ -24,6 +25,12 @@ def predict():
         json_ = request.json
         query_df = pd.DataFrame(json_)
         processed = Model.process_categorical_data(query_df)
+
+        model = joblib.load(Paths.model)
+        logging.info('Model loaded')
+        model_columns = joblib.load(Paths.model_columns)
+        logging.info('Model loaded')
+
         reindexed = processed.reindex(columns=model_columns, fill_value=0)
         prediction = model.predict(reindexed)
         return jsonify({'prediction': list(prediction)})
@@ -32,24 +39,12 @@ def predict():
 
 
 @app.route('/insert_data', methods=['POST'])
-def insert_train_data():
+def insert_data():
     try:
         json_ = request.json
         engine = create_engine(Paths.database_uri)
-        insert_data(engine=engine, json_values=json_)
+        insert_data_in_db(engine=engine, json_values=json_)
         return jsonify({'Number of lines': len(json_)})
-    except:
-        return jsonify({'trace': traceback.format_exc()})
-
-
-@app.route('/train', methods=['POST'])
-def train():
-    try:
-        json_ = request.json
-        query_df = pd.DataFrame(json_)
-        model_builder = Model(dataset=query_df)
-        model_builder.build()
-        return jsonify({'trace': "1"})
     except:
         return jsonify({'trace': traceback.format_exc()})
 
@@ -57,10 +52,16 @@ def train():
 @app.route('/train_from_db', methods=['POST'])
 def train_from_db():
     try:
-        df = get_train_data()
+        logging.info('train from db')
+        df = get_data()
         model_builder = Model(dataset=df)
         model_builder.build()
-        return jsonify({'trace': "1"})
+        return jsonify({
+            'train labels number': len(df.query(f'{Columns.set} == "TRAIN"')),
+            'precision': model_builder.precision,
+            'recall': model_builder.recall,
+            'tn, fp, fn, tp': str(model_builder.result_matrix.ravel())
+        })
     except:
         return jsonify({'trace': traceback.format_exc()})
 
@@ -75,10 +76,4 @@ def parse_arguments():
 if __name__ == '__main__':
     args = parse_arguments()
     port = args.port
-
-    model = joblib.load(Paths.model)  # Load "model.pkl"
-    print('Model loaded')
-    model_columns = joblib.load(Paths.model_columns)  # Load "model_columns.pkl"
-    print('Model columns loaded')
-
     app.run(port=port, debug=True)

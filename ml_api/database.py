@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from ml_api.config import Paths
 
 
-def insert_data(engine, json_values):
+def insert_data_in_db(engine, json_values):
     meta = MetaData(engine)
     table = Table(Paths.table,
                   meta,
@@ -22,7 +22,7 @@ def insert_data(engine, json_values):
                   Column('DIS2', Float),
                   Column('LABEL', Integer),
                   Column('set', String)
-                  )
+    )
 
     with engine.connect() as conn:
         for json_value in json_values:
@@ -59,15 +59,15 @@ def create_table(engine):
                   Column('DIS2', Float),
                   Column('LABEL', Integer),
                   Column('set', String)
-                  )
+    )
     with engine.connect():
         table.create()
 
 
-def get_train_data():
+def get_data():
     engine = create_engine(Paths.database_uri)
     with engine.connect() as conn:
-        result_set = conn.execute(f"SELECT * FROM {Paths.table} WHERE set = 'TRAIN'")
+        result_set = conn.execute(f"SELECT * FROM {Paths.table}")
     df = pd.DataFrame(result_set)
     df.columns = result_set.keys()
     return df
