@@ -35,7 +35,7 @@ class TestApi(TestCase):
         expected_status = 200
         expected_response_data = 'Welcome to machine learning model APIs!'
         self.assertEqual(response.status_code, expected_status)
-        self.assertEqual(str(response.get_data()), expected_response_data)
+        self.assertEqual(str(response.get_data(), 'utf-8'), expected_response_data)
 
     @patch('ml_api.config.Paths.database_uri', "postgres+psycopg2://postgres:fake@fakehost:0/fake_db")
     @patch('ml_api.database.Database.insert_data_in_db')
