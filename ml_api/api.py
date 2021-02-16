@@ -5,18 +5,20 @@ import traceback
 import joblib
 import pandas as pd
 from flask import Flask, jsonify, request
-from sqlalchemy import create_engine
 
 from ml_api.config import Paths, Columns
-from ml_api.database import insert_data_in_db, get_data
+from ml_api.database import Database
 from ml_api.model import Model
 
 app = Flask(__name__)
+db_utils = Database()
+
+logging.basicConfig(level=logging.INFO)
 
 
-@app.route("/")
+@app.route('/')
 def hello():
-    return "Welcome to machine learning model APIs!"
+    return 'Welcome to machine learning model APIs!'
 
 
 @app.route('/predict', methods=['POST'])
@@ -38,12 +40,11 @@ def predict():
         return jsonify({'trace': traceback.format_exc()})
 
 
-@app.route('/insert_data', methods=['POST'])
+@app.route('/insert_data', methods=['PUT'])
 def insert_data():
     try:
         json_ = request.json
-        engine = create_engine(Paths.database_uri)
-        insert_data_in_db(engine=engine, json_values=json_)
+        db_utils.insert_data_in_db(json_values=json_)
         return jsonify({'Number of lines': len(json_)})
     except:
         return jsonify({'trace': traceback.format_exc()})
@@ -53,7 +54,7 @@ def insert_data():
 def train_from_db():
     try:
         logging.info('train from db')
-        df = get_data()
+        df = db_utils.get_data()
         model_builder = Model(dataset=df)
         model_builder.build()
         return jsonify({

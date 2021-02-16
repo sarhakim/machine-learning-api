@@ -17,3 +17,6 @@ python ml_api/api.py --port 5000
 ### Configuration
 
 The api depends on a postgres database configured in ml_api/config.py`. 
+
+### Ref 
+- https://www.datacamp.com/community/tutorials/machine-learning-models-api-python

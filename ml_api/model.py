@@ -1,3 +1,4 @@
+""" Class to build, save and evaluate the model."""
 import logging
 import os
 import time
