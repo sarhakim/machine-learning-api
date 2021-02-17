@@ -31,7 +31,7 @@ class Database:
                            )
 
     def insert_data_in_db(self, json_values):
-        with engine.connect() as conn:
+        with self.engine.connect() as conn:
             for json_value in json_values:
                 insert_statement = self.table.insert().values(
                     CONT1=json_value.get('CONT1'),
