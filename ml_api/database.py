@@ -50,7 +50,7 @@ class Database:
                 conn.execute(insert_statement)
 
     def create_table(self):
-        with engine.connect():
+        with self.engine.connect():
             self.table.create()
 
     def get_data(self):
